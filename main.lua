@@ -9,29 +9,54 @@ function clamp(x, min, max)
 end
 
 -- gamedata
-me = { x = 1, y = 1, lev = 1 }
-pnts = me.lev
-wd = { width = 8, height = 8 }
-for j=1,wd.height do
-  wd[j] = {}
-  for i=1,wd.width do
-    wd[j][i] = 0
+function love.load()
+  me = { x = 1, y = 1, lev = 1 }
+  pnts = me.lev
+  wd = { width = 8, height = 8 }
+  for j=1,wd.height do
+    wd[j] = {}
+    for i=1,wd.width do
+      wd[j][i] = 0
+    end
   end
+  wd[me.y][me.x] = me.lev
+  wd[4][4] = 4
+  died = false
 end
-wd[me.y][me.x] = me.lev
-wd[4][4] = 4
-died = false
 
 -- graphics
 gs = 64
 space = gs/4
-line = space/4
+line = gs
 numberpos = gs/2
 diedvis = "cell"
-colors = { background = RGB(40,40,40), default = RGB(248,248,248), character = RGB(161,181,108), died = RGB(171, 70, 66),
-           ok = RGB(161, 181, 108), bad = RGB(220, 150, 86)}
+colors = { background = RGB(0,43,54), default = RGB(253, 246, 227), character = RGB(38, 139, 210), died = RGB(220, 50, 47),
+           ok = RGB(113, 153, 0), bad = RGB(203, 75, 22)}
 
 -- callbacks
+touchx = 0
+touchy = 0
+function love.touchpressed(id,x,y,pres)
+    touchx = x
+    touchy = y
+end
+
+all = {up = 0, down = 0, left = 0, right = 0}
+power = 0
+function love.touchreleased(id,x,y,pres)
+    all = {up = -(y - touchy), down = (y - touchy), left = -(x - touchx) , right = (x - touchx)}
+    power = math.max(all.up, all.down, all.left, all.right)
+    v = "space"
+    if power > gs*2 then
+        for keyl, am in pairs(all) do
+            if am >= power then
+                v = keyl
+                break
+            end
+        end
+    end
+    love.keypressed(v)
+end
 
 function love.keypressed(key)
   if died then
@@ -77,16 +102,12 @@ function love.keypressed(key)
 end
 
 function love.draw()
-  if died and diedvis == "background" then
-    love.graphics.setBackgroundColor(colors.died)
-  else
-    love.graphics.setBackgroundColor(colors.background)
-  end
+  love.graphics.setBackgroundColor(colors.background)
   love.graphics.setLineWidth( space/4 )
   for x=1,wd.width do
     for y=1,wd.height do
       elem = wd[y][x]
-      if died and diedvis == "cell" then
+      if died then
         love.graphics.setColor(colors.died)
       elseif x == me.x and y == me.y then
         love.graphics.setColor(colors.character)
