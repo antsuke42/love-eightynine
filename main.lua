@@ -10,10 +10,12 @@ end
 
 -- options
 gridsize = { x = 8, y = 8 }
-maxspawn = 989
-colorcode = false
+maxlev = 99
+maxspawn = maxlev - 10
+colorcode = true
 
 -- gamedata
+highscore = 0
 function love.load()
   me = { x = love.math.random(gridsize.x), y = love.math.random(gridsize.y), lev = 0 }
   pnts = me.lev
@@ -39,7 +41,7 @@ colors = { background = RGB(0,43,54), default = RGB(253,246,227), character = RG
            ok = RGB(113, 153, 0), bad = RGB(203, 75, 22), text = RGB(253, 246, 227)}
 while gs * gridsize.y > love.graphics.getHeight() - 16 do
   gs = gs-4
-  numberpos = gs/2
+  numberpos = gs/3
   line = gs
   space = gs/4
 end
@@ -48,12 +50,12 @@ end
 -- callbacks
 touchx = 0
 touchy = 0
-function love.touchpressed(id,x,y,pres)
+function touchpressed(x,y)
     touchx = x
     touchy = y
 end
 
-function love.touchreleased(id,x,y,pres)
+function touchreleased(x,y)
     all = {up = -(y - touchy), down = (y - touchy), left = -(x - touchx) , right = (x - touchx)}
     power = math.max(all.up, all.down, all.left, all.right)
     v = "space"
@@ -66,6 +68,22 @@ function love.touchreleased(id,x,y,pres)
         end
     end
     love.keypressed(v)
+end
+
+-- function love.touchpressed(id, x, y)
+--   touchpressed(x,y)
+-- end
+
+-- function love.touchreleased(id, x, y)
+--  touchreleased(x,y)
+-- end
+
+function love.mousepressed(x, y, button, istouch)
+  if button == 1 or istouch then touchpressed(x,y) end
+end
+
+function love.mousereleased(x, y, button, istouch)
+  if button == 1 or istouch then touchreleased(x,y) end
 end
 
 function love.keypressed(key)
@@ -99,9 +117,16 @@ function love.keypressed(key)
     died = true
     me.x = -1
     me.y = -1
+    if pnts > highscore then
+      highscore = pnts
+    end
     return
   elseif elem > 0 or me.lev == 0 then
     me.lev = me.lev + 1
+    pnts = pnts + 1
+  end
+  if me.lev > maxlev then
+    me.lev = 0
   end
   me.x = me.x + vel.x
   me.y = me.y + vel.y
@@ -125,9 +150,9 @@ function love.draw()
         love.graphics.setColor(colors.died)
       elseif x == me.x and y == me.y then
         love.graphics.setColor(colors.character)
-      elseif elem == 0 then
+      elseif elem == 0 or (not colorcode) then
         love.graphics.setColor(colors.default)
-      elseif elem <= me.lev and colorcode then
+      elseif elem <= me.lev then
         love.graphics.setColor(colors.ok)
       else
         love.graphics.setColor(colors.bad)
@@ -137,5 +162,8 @@ function love.draw()
       love.graphics.print(elem, gs*y-gs+numberpos, gs*x-gs+numberpos)
     end
   end
-  love.graphics.setColor(colors.character)
+  love.graphics.setColor(colors.text)
+  love.graphics.print("points: " .. pnts, gs*wd.width+gs, gs)
+  love.graphics.print("highscore: " .. highscore, gs*wd.width+gs, gs*2)
+
 end
