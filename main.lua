@@ -9,7 +9,7 @@ function clamp(x, min, max)
 end
 
 -- options
-gridsize = { x = 4, y = 4 }
+gridsize = { x = 4, y = 8 }
 maxlev = 99
 maxspawn = maxlev - 10
 colorcode = true
@@ -113,21 +113,21 @@ function love.keypressed(key)
   end
   wd[me.y][me.x] = 0
   vel = { x = 0, y = 0 }
-  if key == "down" and me.x<wd.height then
-    vel.x =  1
-    vel.y = 0
-  end
-  if key == "up" and me.x>1 then
-    vel.x = -1
-    vel.y = 0
-  end
-  if key == "right" and me.y<wd.width then
+  if key == "down" and me.y<wd.height then
     vel.x = 0
     vel.y = 1
   end
-  if key == "left" and me.y>1 then
+  if key == "up" and me.y>1 then
     vel.x = 0
     vel.y = -1
+  end
+  if key == "right" and me.x<wd.width then
+    vel.x = 1
+    vel.y = 0
+  end
+  if key == "left" and me.x>1 then
+    vel.x = -1
+    vel.y = 0
   end
 
   elem = wd[me.y + vel.y][me.x + vel.x]
@@ -179,13 +179,12 @@ function love.draw()
       else
         love.graphics.setColor(colors.bad)
       end
-      love.graphics.rectangle("line", gs*y-gs+space, gs*x-gs+space, gs*1-space, gs*1-space)
+      love.graphics.rectangle("line", gs*x-gs+space, gs*y-gs+space, gs*1-space, gs*1-space)
       love.graphics.setColor(colors.text)
-      love.graphics.print(elem, gs*y-gs+numberpos, gs*x-gs+numberpos)
+      love.graphics.print(elem, gs*x-gs+numberpos, gs*y-gs+numberpos)
     end
   end
   love.graphics.setColor(colors.text)
   love.graphics.print("points: " .. pnts, gs*wd.width+gs, gs)
   love.graphics.print("highscore: " .. highscore, gs*wd.width+gs, gs*2)
-
 end
