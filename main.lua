@@ -9,7 +9,7 @@ function clamp(x, min, max)
 end
 
 -- options
-gridsize = { x = 8, y = 8 }
+gridsize = { x = 4, y = 4 }
 maxlev = 99
 maxspawn = maxlev - 10
 colorcode = true
@@ -32,7 +32,7 @@ function love.load()
 end
 
 -- graphics
-gs = 256
+gs = 128
 space = gs/4
 line = gs
 numberpos = gs/2
@@ -46,8 +46,22 @@ while gs * gridsize.y > love.graphics.getHeight() - 16 do
   space = gs/4
 end
 
+-- font = love.graphics.newFont("font.pcf", 20)
 
--- callbacks
+-- music
+music = love.audio.newSource("music.wav", "stream")
+
+music:setLooping(true)
+music:setVolume(0.1)
+music:play()
+
+soundfiles = {"die","level","step"}
+sound = {}
+for _, i in ipairs(soundfiles) do
+  sound[i] = love.audio.newSource("sfx/" .. i .. ".wav", "static")
+end
+
+-- callback
 touchx = 0
 touchy = 0
 function touchpressed(x,y)
@@ -70,20 +84,23 @@ function touchreleased(x,y)
     love.keypressed(v)
 end
 
--- function love.touchpressed(id, x, y)
---   touchpressed(x,y)
--- end
-
--- function love.touchreleased(id, x, y)
---  touchreleased(x,y)
--- end
-
 function love.mousepressed(x, y, button, istouch)
   if button == 1 or istouch then touchpressed(x,y) end
 end
 
 function love.mousereleased(x, y, button, istouch)
   if button == 1 or istouch then touchreleased(x,y) end
+end
+
+function love.update(dt)
+    if love.touch.getTouches()[1] or love.mouse.isDown(1) or love.keyboard.isDown("space") then
+        timer = timer + dt
+    else
+        timer = 0
+    end
+    if timer > 1 then
+        love.keypressed("space")
+    end
 end
 
 function love.keypressed(key)
@@ -112,6 +129,7 @@ function love.keypressed(key)
     vel.x = 0
     vel.y = -1
   end
+
   elem = wd[me.y + vel.y][me.x + vel.x]
   if elem > me.lev then
     died = true
@@ -120,10 +138,14 @@ function love.keypressed(key)
     if pnts > highscore then
       highscore = pnts
     end
+    sound.die:play()
     return
   elseif elem > 0 or me.lev == 0 then
     me.lev = me.lev + 1
     pnts = pnts + 1
+    sound.level:play()
+  elseif not (vel.x == 0 and vel.y == 0) then
+    sound.step:play()
   end
   if me.lev > maxlev then
     me.lev = 0
@@ -133,14 +155,14 @@ function love.keypressed(key)
   wd[me.y][me.x] = me.lev
 
   newcordx, newcordy = love.math.random(wd.width), love.math.random(wd.height)
-  if (wd[newcordy][newcordx] == 0) then
+  if (wd[newcordy][newcordx] == 0) and me.lev < maxspawn then
     newelem = clamp(love.math.random(me.lev+4)-2+me.lev, 1, maxspawn)
     wd[newcordy][newcordx] = newelem
   end
-
 end
 
 function love.draw()
+--  love.graphics.setFont(font)
   love.graphics.setBackgroundColor(colors.background)
   love.graphics.setLineWidth( space/4 )
   for x=1,wd.width do
