@@ -11,7 +11,7 @@ end
 -- options
 gridsize = { x = 9, y = 9 }
 maxlev = 999
-colorcode = true
+colorcode = false
 
 -- gamedata
 highscore = 0
@@ -37,7 +37,7 @@ line = gs
 numberpos = gs/2
 diedvis = "cell"
 colors = { background = RGB(0,43,54), default = RGB(253,246,227), character = RGB(38, 139, 210), died = RGB(220, 50, 47),
-           ok = RGB(113, 153, 0), bad = RGB(203, 75, 22), text = RGB(253, 246, 227)}
+           ok = RGB(113, 153, 0), bad = RGB(203, 75, 22), text = RGB(253, 246, 227), tile = RGB(181, 137, 0)}
 while gs * gridsize.y > love.graphics.getHeight() - 16 or gs * gridsize.x > love.graphics.getWidth() - 128 do
   gs = gs-4
   numberpos = gs/3
@@ -102,6 +102,14 @@ function love.update(dt)
     end
 end
 
+function spawnelem()
+  newcordx, newcordy = love.math.random(wd.width), love.math.random(wd.height)
+  if (wd[newcordy][newcordx] == 0) and me.lev < maxlev then
+    newelem = clamp(love.math.random(me.lev+4)-2+me.lev, 1, maxlev)
+    wd[newcordy][newcordx] = newelem
+  end
+end
+
 function love.keypressed(key)
   if key == "escape" then
     love.load()
@@ -151,11 +159,7 @@ function love.keypressed(key)
   me.y = me.y + vel.y
   wd[me.y][me.x] = me.lev
 
-  newcordx, newcordy = love.math.random(wd.width), love.math.random(wd.height)
-  if (wd[newcordy][newcordx] == 0) and me.lev < maxlev then
-    newelem = clamp(love.math.random(me.lev+4)-2+me.lev, 1, maxlev)
-    wd[newcordy][newcordx] = newelem
-  end
+  spawnelem()
 end
 
 function love.draw()
@@ -169,12 +173,14 @@ function love.draw()
         love.graphics.setColor(colors.died)
       elseif x == me.x and y == me.y then
         love.graphics.setColor(colors.character)
-      elseif elem == 0 or (not colorcode) then
+      elseif elem == 0 then
         love.graphics.setColor(colors.default)
-      elseif elem <= me.lev then
-        love.graphics.setColor(colors.ok)
-      else
+      elseif not colorcode then
+        love.graphics.setColor(colors.tile)
+      elseif elem > me.lev then
         love.graphics.setColor(colors.bad)
+      else
+        love.graphics.setColor(colors.ok)
       end
       love.graphics.rectangle("line", gs*x-gs+space, gs*y-gs+space, gs*1-space, gs*1-space)
       love.graphics.setColor(colors.text)
