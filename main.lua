@@ -9,16 +9,15 @@ function clamp(x, min, max)
 end
 
 -- options
-gridsize = { x = 4, y = 8 }
-maxlev = 99
-maxspawn = maxlev - 10
+gridsize = { x = 9, y = 9 }
+maxlev = 999
 colorcode = true
 
 -- gamedata
 highscore = 0
 function love.load()
   me = { x = love.math.random(gridsize.x), y = love.math.random(gridsize.y), lev = 0 }
-  pnts = me.lev
+  pnts = 0
   wd = { width = gridsize.x, height = gridsize.y }
   for j=1,wd.height do
     wd[j] = {}
@@ -39,7 +38,7 @@ numberpos = gs/2
 diedvis = "cell"
 colors = { background = RGB(0,43,54), default = RGB(253,246,227), character = RGB(38, 139, 210), died = RGB(220, 50, 47),
            ok = RGB(113, 153, 0), bad = RGB(203, 75, 22), text = RGB(253, 246, 227)}
-while gs * gridsize.y > love.graphics.getHeight() - 16 do
+while gs * gridsize.y > love.graphics.getHeight() - 16 or gs * gridsize.x > love.graphics.getWidth() - 128 do
   gs = gs-4
   numberpos = gs/3
   line = gs
@@ -55,7 +54,7 @@ music:setLooping(true)
 music:setVolume(0.1)
 music:play()
 
-soundfiles = {"die","level","step"}
+soundfiles = {"die","level","step","restart"}
 sound = {}
 for _, i in ipairs(soundfiles) do
   sound[i] = love.audio.newSource("sfx/" .. i .. ".wav", "static")
@@ -106,6 +105,7 @@ end
 function love.keypressed(key)
   if key == "escape" then
     love.load()
+    sound.restart:play()
     return
   end
   if died then
@@ -140,23 +140,20 @@ function love.keypressed(key)
     end
     sound.die:play()
     return
-  elseif elem > 0 or me.lev == 0 then
+  elseif elem > 0 or me.lev == 0 and me.lev < maxlev then
     me.lev = me.lev + 1
     pnts = pnts + 1
     sound.level:play()
   elseif not (vel.x == 0 and vel.y == 0) then
     sound.step:play()
   end
-  if me.lev > maxlev then
-    me.lev = 0
-  end
   me.x = me.x + vel.x
   me.y = me.y + vel.y
   wd[me.y][me.x] = me.lev
 
   newcordx, newcordy = love.math.random(wd.width), love.math.random(wd.height)
-  if (wd[newcordy][newcordx] == 0) and me.lev < maxspawn then
-    newelem = clamp(love.math.random(me.lev+4)-2+me.lev, 1, maxspawn)
+  if (wd[newcordy][newcordx] == 0) and me.lev < maxlev then
+    newelem = clamp(love.math.random(me.lev+4)-2+me.lev, 1, maxlev)
     wd[newcordy][newcordx] = newelem
   end
 end
