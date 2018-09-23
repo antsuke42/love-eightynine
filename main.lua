@@ -103,10 +103,11 @@ function love.update(dt)
 end
 
 function spawnelem()
-  newcordx, newcordy = love.math.random(wd.width), love.math.random(wd.height)
-  if (wd[newcordy][newcordx] == 0) and me.lev < maxlev then
+  newcord = {}
+  newcord.x, newcord.y = love.math.random(wd.width), love.math.random(wd.height)
+  if (wd[newcord.y][newcord.x] == 0) and me.lev < maxlev then
     newelem = clamp(love.math.random(me.lev+4)-2+me.lev, 1, maxlev)
-    wd[newcordy][newcordx] = newelem
+    wd[newcord.y][newcord.x] = newelem
   end
 end
 
